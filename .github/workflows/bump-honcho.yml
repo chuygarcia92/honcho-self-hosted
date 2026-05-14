@@ -50,7 +50,7 @@ jobs:
 
           git add setup.sh
           git commit -m "chore: bump Honcho upstream ${OLD} → ${NEW}"
-          git push origin "$BRANCH"
+          git push --force origin "$BRANCH"
 
           gh pr create \
             --title "chore: bump Honcho upstream ${OLD} → ${NEW}" \
