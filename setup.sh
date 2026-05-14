@@ -7,6 +7,7 @@ set -euo pipefail
 #   curl -sL https://raw.githubusercontent.com/elkimek/honcho-self-hosted/main/setup.sh -o /tmp/setup.sh
 #   bash /tmp/setup.sh
 
+HONCHO_VERSION="v0.0.34"   # bumped automatically by GitHub Actions
 REPO="https://github.com/elkimek/honcho-self-hosted.git"
 HONCHO_REPO="https://github.com/plastic-labs/honcho.git"
 INSTALL_DIR="$HOME/honcho"
@@ -57,7 +58,7 @@ if [ -d "$INSTALL_DIR/.git" ]; then
     git -C "$INSTALL_DIR" pull -q 2>/dev/null || true
 else
     echo "[3/5] Cloning Honcho..."
-    git clone -q --depth 1 "$HONCHO_REPO" "$INSTALL_DIR"
+    git clone -q --depth 1 --branch "$HONCHO_VERSION" "$HONCHO_REPO" "$INSTALL_DIR"
 fi
 
 # --- Copy configs (untracked by upstream, safe to overwrite) ---
