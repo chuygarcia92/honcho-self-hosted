@@ -31,7 +31,7 @@ jobs:
           CURRENT=$(grep '^HONCHO_VERSION=' setup.sh | cut -d'"' -f2)
           echo "tag=$CURRENT" >> "$GITHUB_OUTPUT"
 
-      - - name: Open PR if newer tag exists
+      - name: Open PR if newer tag exists
         if: steps.upstream.outputs.tag != steps.current.outputs.tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
