@@ -11,7 +11,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      workflows: write
 
     steps:
       - name: Checkout
@@ -32,7 +31,7 @@ jobs:
           CURRENT=$(grep '^HONCHO_VERSION=' setup.sh | cut -d'"' -f2)
           echo "tag=$CURRENT" >> "$GITHUB_OUTPUT"
 
-      - name: Open PR if newer tag exists
+      - - name: Open PR if newer tag exists
         if: steps.upstream.outputs.tag != steps.current.outputs.tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,12 +43,16 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git checkout -b "$BRANCH"
-
-          # Bump the version in setup.sh
+          # Update setup.sh on main working tree
           sed -i "s|^HONCHO_VERSION=.*|HONCHO_VERSION=\"${NEW}\"|" setup.sh
 
-          git add setup.sh
+          # Create a commit with ONLY setup.sh — nothing else
+          git stash --include-untracked
+          git checkout -b "$BRANCH"
+          git stash pop
+          git reset HEAD
+          git add -- setup.sh
+          git diff --cached --name-only  # debug: show what is staged
           git commit -m "chore: bump Honcho upstream ${OLD} → ${NEW}"
           git push --force origin "$BRANCH"
 
