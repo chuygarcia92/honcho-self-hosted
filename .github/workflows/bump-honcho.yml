@@ -1,0 +1,63 @@
+name: Bump Honcho upstream version
+
+on:
+  schedule:
+    - cron: '0 8 * * *'      # daily at 08:00 UTC
+  workflow_dispatch:           # also runnable manually from the Actions tab
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest upstream tag
+        id: upstream
+        run: |
+          LATEST=$(git ls-remote --tags https://github.com/plastic-labs/honcho.git \
+            | grep -o 'refs/tags/v[^{}]*' \
+            | sort -V | tail -1 \
+            | sed 's|refs/tags/||')
+          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Get current pinned tag
+        id: current
+        run: |
+          CURRENT=$(grep '^HONCHO_VERSION=' setup.sh | cut -d'"' -f2)
+          echo "tag=$CURRENT" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR if newer tag exists
+        if: steps.upstream.outputs.tag != steps.current.outputs.tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW="${{ steps.upstream.outputs.tag }}"
+          OLD="${{ steps.current.outputs.tag }}"
+          BRANCH="bump-honcho-${NEW}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+
+          # Bump the version in setup.sh
+          sed -i "s|^HONCHO_VERSION=.*|HONCHO_VERSION=\"${NEW}\"|" setup.sh
+
+          git add setup.sh
+          git commit -m "chore: bump Honcho upstream ${OLD} → ${NEW}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore: bump Honcho upstream ${OLD} → ${NEW}" \
+            --body "Automated bump of upstream [plastic-labs/honcho](https://github.com/plastic-labs/honcho) from \`${OLD}\` to \`${NEW}\`.
+
+          **Review before merging:**
+          - Check the [upstream changelog](https://github.com/plastic-labs/honcho/releases/tag/${NEW}) for breaking changes
+          - Verify \`docker-compose.yml\` and \`config.toml\` are still compatible" \
+            --base main \
+            --head "$BRANCH"
