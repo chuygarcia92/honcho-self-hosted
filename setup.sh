@@ -7,7 +7,7 @@ set -euo pipefail
 #   curl -sL https://raw.githubusercontent.com/elkimek/honcho-self-hosted/main/setup.sh -o /tmp/setup.sh
 #   bash /tmp/setup.sh
 
-HONCHO_VERSION="v3.0.6"
+HONCHO_VERSION="v3.0.8"
 REPO="https://github.com/elkimek/honcho-self-hosted.git"
 HONCHO_REPO="https://github.com/plastic-labs/honcho.git"
 INSTALL_DIR="$HOME/honcho"
